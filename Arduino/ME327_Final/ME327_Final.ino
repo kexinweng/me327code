@@ -81,6 +81,7 @@ double stir_angle = 0; //stirring wheel angle, to change world_theta
 double stirring_ratio = 0.2; // TOTUNE
 bool collide = false;
 unsigned ep = 10;
+double carSpeed = 10;
 
 // --------------------------------------------------------------
 // Setup function -- NO NEED TO EDIT
@@ -203,12 +204,24 @@ void loop()
   map_ptr = world2map(resolution, world_xy);
   map_ij[0] = map_ptr[0];
   map_ij[1] = map_ptr[1];
-  //check if collides
-  collide = collasion(map_ij, world_theta, maize, resolution, ep);
+
   // change of location and direction
   world_theta = stir_angle * stirring_ratio + world_theta;
+  double x_temp = world_x + carSpeed * cos(world_theta);
+  double y_temp = world_y + carSpeed * sin(world_theta);
   
-  
+  //check if collides
+  collide = collasion(x_temp, y_temp , world_theta, maize, resolution, ep);
+
+  if (!collide){
+    world_x = x_temp;
+    world_y = y_temp;
+    Serial.print(int(round(world_x)));
+    Serial.print(',');
+    Serial.print(int(round(world_y)));
+    Serial.print(',');
+    Serial.println(world_theta, 5);
+  } // if collide, x, y won't change
   
   
   //*************************************************************
@@ -332,9 +345,9 @@ void setPwmFrequency(int pin, int divisor) {
 
 
 double * map2world(unsigned resolution,int * map_ij) {
-   static int xy[2];
-   xy[0] = map_ij[1]/resolution);
-   xy[1] = map_ij[0]/resolution);
+   static double xy[2];
+   xy[0] = map_ij[1]/resolution;
+   xy[1] = map_ij[0]/resolution;
    return xy;
 }
 
@@ -345,9 +358,11 @@ int * world2map(unsigned resolution,double * world_xy) {
    return ij;
 }
 
-bool collasion(int * ij, double world_theta, int **maize, unsigned resolution, unsigned ep){
-  int i = ij[0];
-  int j = ij[1];
+bool collasion(double x, double y, double world_theta, int **maize, unsigned resolution, unsigned ep){
+  double xy[2] = {x,y};
+  int * ij_ptr = world2map(resolution, xy);
+  int i = ij_ptr[0];
+  int j = ij_ptr[1];
   if (maize[i+ep][j] == 1 || maize[i-ep][j] == 1 || maize[i][j-ep] == 1 || maize[i][j+ep] == 1){
       return true;
     } else {
