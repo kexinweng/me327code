@@ -86,14 +86,14 @@ double carSpeed = 10;
 // --------------------------------------------------------------
 // Setup function -- NO NEED TO EDIT
 // --------------------------------------------------------------
-void setup() 
+void setup()
 {
   // Set up serial communication
   Serial.begin(115200);
-  
-  // Set PWM frequency 
-  setPwmFrequency(pwmPin,1); 
-  
+
+  // Set PWM frequency
+  setPwmFrequency(pwmPin, 1);
+
   // Input pins
   pinMode(sensorPosPin, INPUT); // set MR sensor pin to be an input
   pinMode(fsrPin, INPUT);       // set FSR sensor pin to be an input
@@ -101,11 +101,11 @@ void setup()
   // Output pins
   pinMode(pwmPin, OUTPUT);  // PWM pin for motor A
   pinMode(dirPin, OUTPUT);  // dir pin for motor A
-  
-  // Initialize motor 
+
+  // Initialize motor
   analogWrite(pwmPin, 0);     // set to not be spinning (0/255)
   digitalWrite(dirPin, LOW);  // set direction
-  
+
   // Initialize position valiables
   lastLastRawPos = analogRead(sensorPosPin);
   lastRawPos = analogRead(sensorPosPin);
@@ -116,7 +116,7 @@ void setup()
   world_xy[0] = world_x;
   world_xy[1] = world_y;
   map_ptr = world2map(resolution, world_xy);
-  
+
   map_ij[0] = map_ptr[0];
   map_ij[1] = map_ptr[1];
   //int * world_ptr = map2world(resolution, map_ij);
@@ -128,9 +128,9 @@ void setup()
 // --------------------------------------------------------------
 void loop()
 {
-  
+
   //*************************************************************
-  //*** Section 1. Compute position in counts (do not change) ***  
+  //*** Section 1. Compute position in counts (do not change) ***
   //*************************************************************
 
   // Get voltage output by MR sensor
@@ -141,39 +141,39 @@ void loop()
   lastRawDiff = rawPos - lastLastRawPos;  //difference btwn current raw position and last last raw position
   rawOffset = abs(rawDiff);
   lastRawOffset = abs(lastRawDiff);
-  
+
   // Update position record-keeping vairables
   lastLastRawPos = lastRawPos;
   lastRawPos = rawPos;
-  
+
   // Keep track of flips over 180 degrees
-  if((lastRawOffset > flipThresh) && (!flipped)) { // enter this anytime the last offset is greater than the flip threshold AND it has not just flipped
-    if(lastRawDiff > 0) {        // check to see which direction the drive wheel was turning
-      flipNumber--;              // cw rotation 
+  if ((lastRawOffset > flipThresh) && (!flipped)) { // enter this anytime the last offset is greater than the flip threshold AND it has not just flipped
+    if (lastRawDiff > 0) {       // check to see which direction the drive wheel was turning
+      flipNumber--;              // cw rotation
     } else {                     // if(rawDiff < 0)
       flipNumber++;              // ccw rotation
     }
-    if(rawOffset > flipThresh) { // check to see if the data was good and the most current offset is above the threshold
-      updatedPos = rawPos + flipNumber*rawOffset; // update the pos value to account for flips over 180deg using the most current offset 
+    if (rawOffset > flipThresh) { // check to see if the data was good and the most current offset is above the threshold
+      updatedPos = rawPos + flipNumber * rawOffset; // update the pos value to account for flips over 180deg using the most current offset
       tempOffset = rawOffset;
     } else {                     // in this case there was a blip in the data and we want to use lastactualOffset instead
-      updatedPos = rawPos + flipNumber*lastRawOffset;  // update the pos value to account for any flips over 180deg using the LAST offset
+      updatedPos = rawPos + flipNumber * lastRawOffset; // update the pos value to account for any flips over 180deg using the LAST offset
       tempOffset = lastRawOffset;
     }
     flipped = true;            // set boolean so that the next time through the loop won't trigger a flip
   } else {                        // anytime no flip has occurred
-    updatedPos = rawPos + flipNumber*tempOffset; // need to update pos based on what most recent offset is 
+    updatedPos = rawPos + flipNumber * tempOffset; // need to update pos based on what most recent offset is
     flipped = false;
   }
- 
+
   //*************************************************************
   //*** Section 2. Compute position in meters *******************
   //*************************************************************
 
   // ADD YOUR CODE HERE (Use your code from Problems 1 and 2)
   // Define kinematic parameters you may need
-     //double rh = ?;   //[m]
-     double rh = 0.09;   //[m]
+  //double rh = ?;   //[m]
+  double rh = 0.09;   //[m]
   // Step B.1: print updatedPos via serial monitor
   // Serial.println(updatedPos);
   // Step B.6: double ts = ?; // Compute the angle of the sector pulley (ts) in degrees based on updatedPos
@@ -186,21 +186,21 @@ void loop()
   dxh = (double)(xh - xh_prev) / 0.001;
 
   // Calculate the filtered velocity of the handle using an infinite impulse response filter
-  dxh_filt = .7*dxh + .3*dxh_prev;  // having more filtering
-  
+  dxh_filt = .7 * dxh + .3 * dxh_prev; // having more filtering
+
   // Record the position and velocity
   xh_prev2 = xh_prev;
   xh_prev = xh;
-  
+
   dxh_prev2 = dxh_prev;
   dxh_prev = dxh;
-  
+
   dxh_filt_prev2 = dxh_filt_prev;
   dxh_filt_prev = dxh_filt;
 
   // final project codes
   // calibration
-  stir_angle = updatedPos * (-0.01169) + 7.53957; // TOTUNE
+  stir_angle = updatedPos * (-0.01324) - 1.857; // TOTUNE
   map_ptr = world2map(resolution, world_xy);
   map_ij[0] = map_ptr[0];
   map_ij[1] = map_ptr[1];
@@ -209,11 +209,11 @@ void loop()
   world_theta = stir_angle * stirring_ratio + world_theta;
   double x_temp = world_x + carSpeed * cos(world_theta);
   double y_temp = world_y + carSpeed * sin(world_theta);
-  
+
   //check if collides
   collide = collasion(x_temp, y_temp , world_theta, maize, resolution, ep);
 
-  if (!collide){
+  if (!collide) {
     world_x = x_temp;
     world_y = y_temp;
     Serial.print(int(round(world_x)));
@@ -222,79 +222,79 @@ void loop()
     Serial.print(',');
     Serial.println(world_theta, 5);
   } // if collide, x, y won't change
-  
-  
+
+
   //*************************************************************
-  //*** Section 3. Assign a motor output force in Newtons *******  
+  //*** Section 3. Assign a motor output force in Newtons *******
   //*************************************************************
   //*************************************************************
   //******************* Rendering Algorithms ********************
   //*************************************************************
-   
+
 #ifdef ENABLE_VIRTUAL_WALL
   if (xh > 0.005) { // if penetrating wall
-    force = -800 * (xh-0.005); // max stiffness set as 800
+    force = -800 * (xh - 0.005); // max stiffness set as 800
   }
   else {
     force = 0;
   }
-  Serial.println(xh,5);
+  Serial.println(xh, 5);
 #endif
 
 
 #ifdef ENABLE_SPRING_DAMPING_Assignment5
   Serial.print(xh, 5);
   Serial.print(',');
-  force = - kuser*(max(0, xh - xmass)); // force output for hapkit
-  force_mass = kuser * max(0, xh-xmass) + kspring * (0.005 - xmass) - b * dxmass;
+  force = - kuser * (max(0, xh - xmass)); // force output for hapkit
+  force_mass = kuser * max(0, xh - xmass) + kspring * (0.005 - xmass) - b * dxmass;
   acc_mass = force_mass / mass;
   dxmass = dxmass + 0.001 * acc_mass; // Calculate velocity with loop time estimation
   xmass = xmass + 0.5 * (dxmass + dxmass_prev) * 0.001; // Calculate position with loop time estimation
   dxmass_prev = dxmass; // store the velocity
-  Serial.println(xmass,5);
+  Serial.println(xmass, 5);
 #endif
 
 #ifdef ENABLE_LINEAR_DAMPING
- Serial.println(dxh_filt);
- force = 10 * dxh_filt; // set damping coefficient as 10.
- //Serial.println(force);
+  Serial.println(dxh_filt);
+  force = 10 * dxh_filt; // set damping coefficient as 10.
+  //Serial.println(force);
 #endif
 
 
   // ADD YOUR CODE HERE (Use ypur code from Problems 1 and 2)
   // Define kinematic parameters you may need
-     //double rp = ?;   //[m]
-     //double rs = ?;   //[m] 
+  //double rp = ?;   //[m]
+  //double rs = ?;   //[m]
   // Step C.1: force = ?; // You can  generate a force by assigning this to a constant number (in Newtons) or use a haptic rendering / virtual environment
   // Step C.2: Tp = ?;    // Compute the require motor pulley torque (Tp) to generate that force using kinematics
-  
+
   double rp = 0.00476;
   double rs = 0.073;
 
   double Tp = rh * rp / rs * force;
-  
+
   //*************************************************************
   //*** Section 4. Force output (do not change) *****************
   //*************************************************************
-  
+
   // Determine correct direction for motor torque
-  if(force > 0) { 
+  if (force > 0) {
     digitalWrite(dirPin, HIGH);
   } else {
     digitalWrite(dirPin, LOW);
   }
 
   // Compute the duty cycle required to generate Tp (torque at the motor pulley)
-  duty = sqrt(abs(Tp)/0.03);
+  duty = sqrt(abs(Tp) / 0.03);
 
   // Make sure the duty cycle is between 0 and 100%
-  if (duty > 1) {            
+  if (duty > 1) {
     duty = 1;
-  } else if (duty < 0) { 
+  } else if (duty < 0) {
     duty = 0;
-  }  
-  output = (int)(duty* 255);   // convert duty cycle to output signal
-  analogWrite(pwmPin,output);  // output the signal
+  }
+  output = (int)(duty * 255);  // convert duty cycle to output signal
+  analogWrite(pwmPin, output); // output the signal
 }
 
 // When calling://TO BE CHANGED
@@ -310,8 +310,8 @@ void loop()
 // --------------------------------------------------------------
 void setPwmFrequency(int pin, int divisor) {
   byte mode;
-  if(pin == 5 || pin == 6 || pin == 9 || pin == 10) {
-    switch(divisor) {
+  if (pin == 5 || pin == 6 || pin == 9 || pin == 10) {
+    switch (divisor) {
       case 1: mode = 0x01; break;
       case 8: mode = 0x02; break;
       case 64: mode = 0x03; break;
@@ -319,13 +319,13 @@ void setPwmFrequency(int pin, int divisor) {
       case 1024: mode = 0x05; break;
       default: return;
     }
-    if(pin == 5 || pin == 6) {
+    if (pin == 5 || pin == 6) {
       TCCR0B = TCCR0B & 0b11111000 | mode;
     } else {
       TCCR1B = TCCR1B & 0b11111000 | mode;
     }
-  } else if(pin == 3 || pin == 11) {
-    switch(divisor) {
+  } else if (pin == 3 || pin == 11) {
+    switch (divisor) {
       case 1: mode = 0x01; break;
       case 8: mode = 0x02; break;
       case 32: mode = 0x03; break;
@@ -339,51 +339,89 @@ void setPwmFrequency(int pin, int divisor) {
   }
 }
 // --------------------------------------------------------------
-// Function fo map2world and world2map: the world is processing pos, the map is maize, resolution = 2 default. 
+// Function fo map2world and world2map: the world is processing pos, the map is maize, resolution = 2 default.
 // (maize matrix is larger than world, to be more accurate)
 // --------------------------------------------------------------
 
 
-double * map2world(unsigned resolution,int * map_ij) {
-   static double xy[2];
-   xy[0] = map_ij[1]/resolution;
-   xy[1] = map_ij[0]/resolution;
-   return xy;
+double * map2world(unsigned resolution, int * map_ij) {
+  static double xy[2];
+  xy[0] = map_ij[1] / resolution;
+  xy[1] = map_ij[0] / resolution;
+  return xy;
 }
 
-int * world2map(unsigned resolution,double * world_xy) {
-   static int ij[2];
-   ij[0] = int(round(world_xy[1] * resolution));
-   ij[1] = int(round(world_xy[0] * resolution));
-   return ij;
+int * world2map(unsigned resolution, double * world_xy) {
+  static int ij[2];
+  ij[0] = int(round(world_xy[1] * resolution));
+  ij[1] = int(round(world_xy[0] * resolution));
+  return ij;
 }
 
-bool collasion(double x, double y, double world_theta, int **maize, unsigned resolution, unsigned ep){
-  double xy[2] = {x,y};
+bool collasion(double x, double y, double world_theta, int **maize, unsigned resolution, unsigned ep) {
+  double xy[2] = {x, y};
   int * ij_ptr = world2map(resolution, xy);
   int i = ij_ptr[0];
   int j = ij_ptr[1];
-  if (maize[i+ep][j] == 1 || maize[i-ep][j] == 1 || maize[i][j-ep] == 1 || maize[i][j+ep] == 1){
+  if (maize[i + ep][j] == 1 || maize[i - ep][j] == 1 || maize[i][j - ep] == 1 || maize[i][j + ep] == 1) {
+    return true;
+  } else {
+    int newep = int(ceil(ep / 1.414));
+    if (maize[i + newep][j + newep] == 1 || maize[i + newep][j - newep] == 1 || maize[i - newep][j - newep] == 1 || maize[i - newep][j + newep] == 1) {
       return true;
-    } else {
-      int newep = int(ceil(ep/1.414));
-      if (maize[i+newep][j+newep] == 1 || maize[i+newep][j-newep] == 1 || maize[i-newep][j-newep] == 1 ||maize[i-newep][j+newep] == 1){
-      return true;
-      } 
     }
-   return false;
+  }
+  return false;
 }
 
-int** build_maize(unsigned resolution, unsigned height, unsigned width){// maize size is height * width
+int** build_maize(unsigned resolution, unsigned height, unsigned width) { // maize size is height * width
   int** array2D = 0;
-  array2D = new int*[resolution * height]; 
-  for (int h = 0; h < height; h++){
-      array2D[h] = new int[resolution * width];
-      for (int w = 0; w < width; w++){
-            // fill in some initial values
-            // (filling in zeros would be more logic, but this is just for the example)
-            array2D[h][w] = 0;
+  array2D = new int*[resolution * height];
+  for (int h = 0; h < height; h++) {
+    array2D[h] = new int[resolution * width];
+    for (int w = 0; w < width; w++) {
+      // fill in some initial values
+      // (filling in zeros would be more logic, but this is just for the example)
+      // array2D[h][w] = 0;
+      if (h >= 0 && h <= 10) {
+        if (w >= 0 && w <= 1200) {
+          array2D[h][w] = 1;
+        }
+      } else if (h > 10 && h <= 150) {
+        if ((w >= 0 && w <= 10) || (w >= 1190 && w <= 1200)) {
+          array2D[h][w] = 1;
+        }
+      } else if (h > 150 && h <= 390) {
+        if ((w >= 0 && w <= 10) || (w >= 1190 && w <= 1200) || (w >= 150 && w <= 520) || (w >= 780 || w <= 1050)) {
+          array2D[h][w] = 1;
+        }
+      } else if (h > 390 && h <= 470) {
+        if ((w >= 0 && w <= 10) || (w >= 1190 && w <= 1200) || (w >= 150 && w <= 440) || (w >= 760 && w <= 1050)) {
+          array2D[h][w] = 1;
+        }
+        if ((w >= 440 && w <= 520) && ((sq(h - 390) + sq(w - 440) <= 6400))) {
+          array2D[h][w] = 1;
+        }
+        if ((w >= 680 && w <= 760) && ((sq(h - 390) + sq(w - 760) <= 6400))) {
+          array2D[h][w] = 1;
+        }
+      } else if (h > 470 && h <= 520) {
+        if ((w >= 0 && w <= 10) || (w >= 1190 && w <= 1200)) {
+          array2D[h][w] = 1;
+        }
+      } else if (h > 520 && h <= 620) {
+        if ((w >= 0 && w <= 10) || (w >= 1190 && w <= 1200)) {
+          array2D[h][w] = 1;
+        }
+        if (sq(h - 570) + sq(w - 600) <= 2500) {
+          array2D[h][w] = 1;
+        }
+      } else {
+        if (sq(h - 570) + sq(w - 600) >= 10000) {
+          array2D[h][w] = 1;
+        }
       }
+    }
   }
   return array2D;
 }
