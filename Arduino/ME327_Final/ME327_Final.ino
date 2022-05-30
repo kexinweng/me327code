@@ -376,9 +376,11 @@ bool collasion(double x, double y, double world_theta, int **maize, unsigned res
 
 int** build_maize(unsigned resolution, unsigned height, unsigned width) { // maize size is height * width
   int** array2D = 0;
-  array2D = new int*[resolution * width];
+  int maize_height = height * resolution;
+  int maize_width = width * resolution;
+  array2D = new int*[maize_height];
   for (int h = 0; h < hight; h++) {
-    array2D[h] = new int[resolution * width];
+    array2D[h] = new int[maize_width];
     for (int w = 0; w < width; w++) {
       // fill in some initial values
       // (filling in zeros would be more logic, but this is just for the example)
