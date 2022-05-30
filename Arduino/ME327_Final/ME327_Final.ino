@@ -420,7 +420,7 @@ int** build_maize(unsigned resolution, unsigned height, unsigned width) { // mai
           array2D[h][w] = 1;
         }
       } 
-      if (h > 300){
+      if (h > 300 * resolution){
         if (sq(h - 285 * resolution) + sq(w - 300 * resolution) >= sq(100 * resolution)) {
           array2D[h][w] = 1;
         }
