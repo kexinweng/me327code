@@ -379,9 +379,10 @@ int** build_maize(unsigned resolution, unsigned height, unsigned width) { // mai
   int maize_height = height * resolution;
   int maize_width = width * resolution;
   array2D = new int*[maize_height];
-  for (int h = 0; h < hight; h++) {
+  for (int h = 0; h < maize_height; h++) {
     array2D[h] = new int[maize_width];
-    for (int w = 0; w < width; w++) {
+    for (int w = 0; w < maize_width; w++) {
+      
       // fill in some initial values
       // (filling in zeros would be more logic, but this is just for the example)
       // array2D[h][w] = 0;
@@ -401,7 +402,7 @@ int** build_maize(unsigned resolution, unsigned height, unsigned width) { // mai
         if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution) || (w >= 75 * resolution && w <= 220 * resolution) || (w >= 380 * resolution && w <= 525 * resolution)) {
           array2D[h][w] = 1;
         }
-        if ((w >= 220 * resolution && w <= 260 * resolution) && ((sq(h - 195 * resolution) + sq(w - 220 * resolution) <= sq(40 * resolution)))) {
+        if ((w >= 220 * resolution && w <= 260 * resolution) && ((sq(h - 195 * resolution) + sq(w - 220 * resolution) <= sq(40 * resolution))))) {
           array2D[h][w] = 1;
         }
         if ((w >= 340 * resolution && w <= 380 * resolution) && ((sq(h - 195 * resolution) + sq(w - 380 * resolution) <= sq(40 * resolution))) {
@@ -415,11 +416,11 @@ int** build_maize(unsigned resolution, unsigned height, unsigned width) { // mai
         if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution)) {
           array2D[h][w] = 1;
         }
-        if (sq(h - 285 * resolution) + sq(w - 300 * resolution) <= sq(25 * resolution) {
+        if (sq(h - 285 * resolution) + sq(w - 300 * resolution) <= sq(25 * resolution)) {
           array2D[h][w] = 1;
         }
       } else {
-        if (sq(h - 285 * resolution) + sq(w - 300 * resolution) >= sq(50 * resolution) {
+        if (sq(h - 285 * resolution) + sq(w - 300 * resolution) >= sq(50 * resolution)) {
           array2D[h][w] = 1;
         }
       }
