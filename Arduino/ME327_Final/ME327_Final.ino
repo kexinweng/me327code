@@ -419,8 +419,9 @@ int** build_maize(unsigned resolution, unsigned height, unsigned width) { // mai
         if (sq(h - 285 * resolution) + sq(w - 300 * resolution) <= sq(25 * resolution)) {
           array2D[h][w] = 1;
         }
-      } else {
-        if (sq(h - 285 * resolution) + sq(w - 300 * resolution) >= sq(50 * resolution)) {
+      } 
+      if (h > 300){
+        if (sq(h - 285 * resolution) + sq(w - 300 * resolution) >= sq(100 * resolution)) {
           array2D[h][w] = 1;
         }
       }
