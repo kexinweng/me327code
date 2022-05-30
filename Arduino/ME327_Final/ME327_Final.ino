@@ -376,48 +376,48 @@ bool collasion(double x, double y, double world_theta, int **maize, unsigned res
 
 int** build_maize(unsigned resolution, unsigned height, unsigned width) { // maize size is height * width
   int** array2D = 0;
-  array2D = new int*[resolution * height];
-  for (int h = 0; h < height; h++) {
+  array2D = new int*[resolution * width];
+  for (int h = 0; h < hight; h++) {
     array2D[h] = new int[resolution * width];
     for (int w = 0; w < width; w++) {
       // fill in some initial values
       // (filling in zeros would be more logic, but this is just for the example)
       // array2D[h][w] = 0;
-      if (h >= 0 && h <= 10) {
-        if (w >= 0 && w <= 1200) {
+      if (h >= 0 && h <= 5 * resolution) {
+        if (w >= 0 && w <= 600 * resolution) {
           array2D[h][w] = 1;
         }
-      } else if (h > 10 && h <= 150) {
-        if ((w >= 0 && w <= 10) || (w >= 1190 && w <= 1200)) {
+      } else if (h > 5 * resolution && h <= 75 * resolution) {
+        if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution)) {
           array2D[h][w] = 1;
         }
-      } else if (h > 150 && h <= 390) {
-        if ((w >= 0 && w <= 10) || (w >= 1190 && w <= 1200) || (w >= 150 && w <= 520) || (w >= 780 || w <= 1050)) {
+      } else if (h > 75 * resolution && h <= 195 * resolution) {
+        if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution) || (w >= 75 * resolution && w <= 260 * resolution) || (w >= 390 * resolution || w <= 525 * resolution)) {
           array2D[h][w] = 1;
         }
-      } else if (h > 390 && h <= 470) {
-        if ((w >= 0 && w <= 10) || (w >= 1190 && w <= 1200) || (w >= 150 && w <= 440) || (w >= 760 && w <= 1050)) {
+      } else if (h > 195 * resolution && h <= 235 * resolution) {
+        if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution) || (w >= 75 * resolution && w <= 220 * resolution) || (w >= 380 * resolution && w <= 525 * resolution)) {
           array2D[h][w] = 1;
         }
-        if ((w >= 440 && w <= 520) && ((sq(h - 390) + sq(w - 440) <= 6400))) {
+        if ((w >= 220 * resolution && w <= 260 * resolution) && ((sq(h - 195 * resolution) + sq(w - 220 * resolution) <= sq(40 * resolution)))) {
           array2D[h][w] = 1;
         }
-        if ((w >= 680 && w <= 760) && ((sq(h - 390) + sq(w - 760) <= 6400))) {
+        if ((w >= 340 * resolution && w <= 380 * resolution) && ((sq(h - 195 * resolution) + sq(w - 380 * resolution) <= sq(40 * resolution))) {
           array2D[h][w] = 1;
         }
-      } else if (h > 470 && h <= 520) {
-        if ((w >= 0 && w <= 10) || (w >= 1190 && w <= 1200)) {
+      } else if (h > 235 * resolution && h <= 260 * resolution) {
+        if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution)) {
           array2D[h][w] = 1;
         }
-      } else if (h > 520 && h <= 620) {
-        if ((w >= 0 && w <= 10) || (w >= 1190 && w <= 1200)) {
+      } else if (h > 260 * resolution && h <= 310 * resolution) {
+        if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution)) {
           array2D[h][w] = 1;
         }
-        if (sq(h - 570) + sq(w - 600) <= 2500) {
+        if (sq(h - 285 * resolution) + sq(w - 300 * resolution) <= sq(25 * resolution) {
           array2D[h][w] = 1;
         }
       } else {
-        if (sq(h - 570) + sq(w - 600) >= 10000) {
+        if (sq(h - 285 * resolution) + sq(w - 300 * resolution) >= sq(50 * resolution) {
           array2D[h][w] = 1;
         }
       }
