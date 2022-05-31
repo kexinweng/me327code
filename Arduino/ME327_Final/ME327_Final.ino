@@ -64,12 +64,15 @@ double dxmass_prev = 0;
 double force_mass = 0;
 double acc_mass = 0;
 
+
 // definition for final project
-unsigned resolution = 2;
-int **maize;
+double resolution = 0.02;
 // world height and width
 unsigned world_height = 400;
 unsigned world_width = 600;
+int array2D[8][12];
+
+
 // world location using x, y; same as processing
 double world_x = 580;
 double world_y = 220;
@@ -83,6 +86,8 @@ bool collide = false;
 unsigned ep = 10;
 double carSpeed = 10;
 
+
+
 // --------------------------------------------------------------
 // Setup function -- NO NEED TO EDIT
 // --------------------------------------------------------------
@@ -90,10 +95,9 @@ void setup()
 {
   // Set up serial communication
   Serial.begin(115200);
-
+  
   // Set PWM frequency
   setPwmFrequency(pwmPin, 1);
-
   // Input pins
   pinMode(sensorPosPin, INPUT); // set MR sensor pin to be an input
   pinMode(fsrPin, INPUT);       // set FSR sensor pin to be an input
@@ -105,21 +109,21 @@ void setup()
   // Initialize motor
   analogWrite(pwmPin, 0);     // set to not be spinning (0/255)
   digitalWrite(dirPin, LOW);  // set direction
-
   // Initialize position valiables
   lastLastRawPos = analogRead(sensorPosPin);
   lastRawPos = analogRead(sensorPosPin);
-
   // build the maize
-  maize = build_maize(resolution, world_width, world_width);
+  build_maize(resolution, world_height, world_width);
   // car location initialize
   world_xy[0] = world_x;
   world_xy[1] = world_y;
   map_ptr = world2map(resolution, world_xy);
-
   map_ij[0] = map_ptr[0];
   map_ij[1] = map_ptr[1];
   //int * world_ptr = map2world(resolution, map_ij);
+  Serial.println("end of setup");
+  Serial.println(map_ij[0]);
+  Serial.println(map_ij[1]);
 }
 
 
@@ -132,16 +136,13 @@ void loop()
   //*************************************************************
   //*** Section 1. Compute position in counts (do not change) ***
   //*************************************************************
-
   // Get voltage output by MR sensor
   rawPos = analogRead(sensorPosPin);  //current raw position from MR sensor
-
   // Calculate differences between subsequent MR sensor readings
   rawDiff = rawPos - lastRawPos;          //difference btwn current raw position and last raw position
   lastRawDiff = rawPos - lastLastRawPos;  //difference btwn current raw position and last last raw position
   rawOffset = abs(rawDiff);
   lastRawOffset = abs(lastRawDiff);
-
   // Update position record-keeping vairables
   lastLastRawPos = lastRawPos;
   lastRawPos = rawPos;
@@ -209,18 +210,13 @@ void loop()
   world_theta = stir_angle * stirring_ratio + world_theta;
   double x_temp = world_x + carSpeed * cos(world_theta);
   double y_temp = world_y + carSpeed * sin(world_theta);
-
+  Serial.println("check collision");
   //check if collides
-  collide = collasion(x_temp, y_temp , world_theta, maize, resolution, ep);
+  collide = collasion(x_temp, y_temp , world_theta, resolution, ep);
 
   if (!collide) {
     world_x = x_temp;
     world_y = y_temp;
-    Serial.print(int(round(world_x)));
-    Serial.print(',');
-    Serial.print(int(round(world_y)));
-    Serial.print(',');
-    Serial.println(world_theta, 5);
   } // if collide, x, y won't change
 
 
@@ -238,24 +234,19 @@ void loop()
   else {
     force = 0;
   }
-  Serial.println(xh, 5);
 #endif
 
 
 #ifdef ENABLE_SPRING_DAMPING_Assignment5
-  Serial.print(xh, 5);
-  Serial.print(',');
   force = - kuser * (max(0, xh - xmass)); // force output for hapkit
   force_mass = kuser * max(0, xh - xmass) + kspring * (0.005 - xmass) - b * dxmass;
   acc_mass = force_mass / mass;
   dxmass = dxmass + 0.001 * acc_mass; // Calculate velocity with loop time estimation
   xmass = xmass + 0.5 * (dxmass + dxmass_prev) * 0.001; // Calculate position with loop time estimation
   dxmass_prev = dxmass; // store the velocity
-  Serial.println(xmass, 5);
 #endif
 
 #ifdef ENABLE_LINEAR_DAMPING
-  Serial.println(dxh_filt);
   force = 10 * dxh_filt; // set damping coefficient as 10.
   //Serial.println(force);
 #endif
@@ -344,75 +335,99 @@ void setPwmFrequency(int pin, int divisor) {
 // --------------------------------------------------------------
 
 
-double * map2world(unsigned resolution, int * map_ij) {
+double * map2world(double resolution, int * map_ij) {
   static double xy[2];
   xy[0] = map_ij[1] / resolution;
   xy[1] = map_ij[0] / resolution;
   return xy;
 }
 
-int * world2map(unsigned resolution, double * world_xy) {
+int * world2map(double resolution, double * world_xy) {
   static int ij[2];
   ij[0] = int(round(world_xy[1] * resolution));
   ij[1] = int(round(world_xy[0] * resolution));
   return ij;
 }
 
-bool collasion(double x, double y, double world_theta, int **maize, unsigned resolution, unsigned ep) {
+bool collasion(double x, double y, double world_theta, double resolution, unsigned ep) {
   double xy[2] = {x, y};
   int * ij_ptr = world2map(resolution, xy);
   int i = ij_ptr[0];
   int j = ij_ptr[1];
-  if (maize[i + ep][j] == 1 || maize[i - ep][j] == 1 || maize[i][j - ep] == 1 || maize[i][j + ep] == 1) {
+  if (array2D[i + ep][j] == 1 || array2D[i - ep][j] == 1 || array2D[i][j - ep] == 1 || array2D[i][j + ep] == 1) {
     return true;
   } else {
     int newep = int(ceil(ep / 1.414));
-    if (maize[i + newep][j + newep] == 1 || maize[i + newep][j - newep] == 1 || maize[i - newep][j - newep] == 1 || maize[i - newep][j + newep] == 1) {
+    if (array2D[i + newep][j + newep] == 1 || array2D[i + newep][j - newep] == 1 || array2D[i - newep][j - newep] == 1 || array2D[i - newep][j + newep] == 1) {
       return true;
     }
   }
   return false;
 }
 
-int** build_maize(unsigned resolution, unsigned height, unsigned width) { // maize size is height * width
-  int** array2D = 0;
+void build_maize(double resolution, unsigned height, unsigned width) { // maize size is height * width
+  Serial.println("maze dim");
+  Serial.println(height);
+  Serial.println(width);
   int maize_height = height * resolution;
   int maize_width = width * resolution;
-  array2D = new int*[maize_height];
+  
+  Serial.println(maize_height);
+  Serial.println(maize_width);
+  // Serial.println(maize_width);
   for (int h = 0; h < maize_height; h++) {
-    array2D[h] = new int[maize_width];
     for (int w = 0; w < maize_width; w++) {
-      
       // fill in some initial values
       // (filling in zeros would be more logic, but this is just for the example)
       // array2D[h][w] = 0;
+      Serial.println("h and w");
+      Serial.print(h);
+      Serial.print(" ");
+      Serial.print(w);
+      Serial.println(" ");
       if (h >= 0 && h <= 5 * resolution) {
         if (w >= 0 && w <= 600 * resolution) {
+          Serial.println("first condition");
           array2D[h][w] = 1;
         }
-      } else if (h > 5 * resolution && h <= 75 * resolution) {
+      } 
+      
+      else if (h > 5 * resolution && h <= 75 * resolution) {
         if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution)) {
+          Serial.println("second condition");
           array2D[h][w] = 1;
         }
-      } else if (h > 75 * resolution && h <= 195 * resolution) {
+      } 
+      
+      else if (h > 75 * resolution && h <= 195 * resolution) {
         if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution) || (w >= 75 * resolution && w <= 260 * resolution) || (w >= 390 * resolution || w <= 525 * resolution)) {
+          Serial.println("third condition");
           array2D[h][w] = 1;
         }
-      } else if (h > 195 * resolution && h <= 235 * resolution) {
+      } 
+      
+      else if (h > 195 * resolution && h <= 235 * resolution) {
+        Serial.println("fourth condition");
         if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution) || (w >= 75 * resolution && w <= 220 * resolution) || (w >= 380 * resolution && w <= 525 * resolution)) {
           array2D[h][w] = 1;
         }
-        if ((w >= 220 * resolution && w <= 260 * resolution) && ((sq(h - 195 * resolution) + sq(w - 220 * resolution) <= sq(40 * resolution))))) {
+        if ((w >= 220 * resolution && w <= 260 * resolution) && ((sq(h - 195 * resolution) + sq(w - 220 * resolution) <= sq(40 * resolution)))) {
           array2D[h][w] = 1;
         }
-        if ((w >= 340 * resolution && w <= 380 * resolution) && ((sq(h - 195 * resolution) + sq(w - 380 * resolution) <= sq(40 * resolution))) {
+        if ((w >= 340 * resolution && w <= 380 * resolution) && ((sq(h - 195 * resolution) + sq(w - 380 * resolution) <= sq(40 * resolution)))) {
           array2D[h][w] = 1;
         }
-      } else if (h > 235 * resolution && h <= 260 * resolution) {
+      } 
+
+      else if (h > 235 * resolution && h <= 260 * resolution) {
+        Serial.println("fourth condition");
         if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution)) {
           array2D[h][w] = 1;
         }
-      } else if (h > 260 * resolution && h <= 310 * resolution) {
+      } 
+
+      else if (h > 260 * resolution && h <= 310 * resolution) {
+        Serial.println("fifth condition");
         if ((w >= 0 && w <= 5 * resolution) || (w >= 595 * resolution && w <= 600 * resolution)) {
           array2D[h][w] = 1;
         }
@@ -420,12 +435,11 @@ int** build_maize(unsigned resolution, unsigned height, unsigned width) { // mai
           array2D[h][w] = 1;
         }
       } 
-      if (h > 300 * resolution){
-        if (sq(h - 285 * resolution) + sq(w - 300 * resolution) >= sq(100 * resolution)) {
-          array2D[h][w] = 1;
-        }
-      }
+//        else {
+//        if (sq(h - 285 * resolution) + sq(w - 300 * resolution) >= sq(50 * resolution)) {
+//          array2D[h][w] = 1;
+//        }
+//      }
     }
   }
-  return array2D;
 }
