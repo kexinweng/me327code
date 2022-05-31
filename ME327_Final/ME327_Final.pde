@@ -3,9 +3,9 @@ import processing.serial.*;
 Serial myPort;        // The serial port
 
 //initialize all variables
-float in_x = 15; //current value of the first variable in the string
+float in_x = 200; //current value of the first variable in the string
 float last_x = 0; //previous value of the first variable in the string
-float in_y = 200; //current value of the second variable in the string
+float in_y = 300; //current value of the second variable in the string
 float last_y = 0; //previous value of the second variable in the string
 float in_theta = PI/2;
 float last_theta = 0;
@@ -15,16 +15,16 @@ void setup () {
   size(600, 400);        
 
   // List all the available serial ports
-  //println(Serial.list());
+  println(Serial.list());
   // Check the listed serial ports in your machine
   // and use the correct index number in Serial.list()[].
 
   //note you may need to change port number, it is 9 for me
-  //myPort = new Serial(this, Serial.list()[0], 38400);  // also make sure baud rate matches Arduino
+  myPort = new Serial(this, Serial.list()[3], 9600);  // also make sure baud rate matches Arduino
   
 
   // A serialEvent() is generated when a newline character is received :
-  //myPort.bufferUntil('\n');
+  myPort.bufferUntil('\n');
   background(0);      // set inital background:
 }
 void draw () {
@@ -86,19 +86,22 @@ void serialEvent (Serial myPort) {
   // read the first part of the input string
   // HINT: use myPort.readStringUntil() with the appropriate argument
   // trim and convert string to a number
+  String read_0 = myPort.readStringUntil(',');
   String read_x = myPort.readStringUntil(',');
   String read_y = myPort.readStringUntil(',');
   String read_theta = myPort.readStringUntil('\n'); // 32 is the ASCII of "\n"
   if (read_x ==null || read_y == null || read_theta == null){
     return;
   }
-  String text = trim(read_x);
+  String text = trim(read_0);
+  float angle = float(text.substring(0, text.length()-1));
+  text = trim(read_x);
   float x = float(text.substring(0, text.length()-1));
   text = trim(read_y);
   float y = float(text.substring(0, text.length()-1));
   text = trim(read_theta);
   float theta = float(text);
-
+  println(angle);
   // if: the number is NaN, set current value to previous value
   // otherwise: map the new value to the screen width
   //           & update previous value variable
