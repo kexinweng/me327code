@@ -37,25 +37,21 @@ double Tp = 0;              // torque of the motor pulley
 double duty = 0;            // duty cylce (between 0 and 255)
 unsigned int output = 0;    // output command to the motor
 
-// definition for final project
-// unsigned resolution = 2;
-// int **maize;
-// world height and width
-//double world_height = 400;
-//double world_width = 600;
+// 2D maze
+double world_height = 400;
+double world_width = 600;
+double resolution = 0.02;
+int array2D[8][12]; // 8 <= 400*0.02; 12 <= 600*0.02
+
 
 // world location using x, y; same as processing
-double world_x = 30;
-double world_y = 30;
+double world_x = 70;
+double world_y = 70;
 double world_theta =  0; //pi/2
-//int * map_ptr;
-//int map_ij[2];
-//double world_xy[2];
 double steer_angle = 0; //steer wheel angle, to change world_theta
 double steer_ratio = 0.005; // TOTUNE
 bool collide = false;
-//unsigned ep = 10;
-double carSpeed = 0.05;
+double carSpeed = 0.08;
 
 
 
@@ -86,6 +82,17 @@ void setup()
   lastLastRawPos = analogRead(sensorPosPin);
   lastRawPos = analogRead(sensorPosPin);
   flipNumber = 0;
+
+  // Build 2D Maze
+  build_maze();
+
+  for(int i = 0; i <=7; i++){
+    for(int j = 0; j<= 11; j++){
+      Serial.print(array2D[i][j]);
+    }
+    Serial.println();
+  }
+  
 }
 
 
@@ -141,24 +148,34 @@ void loop()
 
       //check if collides
   //collide = collasion(x_temp, y_temp , world_theta, maize, resolution, ep);
-
-  collide = false;
+  //collide = false;
   
+  bool collide = array2D[int(y_temp*resolution)][int(x_temp*resolution)];
   if (!collide) {
     world_x = x_temp;
     world_y = y_temp;
-//    Serial.print(updatedPos);
-//    Serial.print(",");
-//    Serial.print(steer_angle);
-//    Serial.print(',');   
-//    Serial.print(steer_angle, 5);
-//    Serial.print(',');
-    Serial.print(world_x,5);
-    Serial.print(',');
-    Serial.print(world_y,5);
-    Serial.print(',');
-    Serial.println(world_theta, 5);
+    force = 0;
   } // if collide, x, y won't change
+  
+  else {
+    x_temp = world_x + carSpeed * cos(world_theta + PI/2);
+    y_temp = world_y + carSpeed * sin(world_theta + PI/2);
+
+    int x_map = x_temp*resolution;
+    int y_map = y_temp*resolution;
+    bool new_collide = array2D[y_map][x_map] == 1;
+    if (new_collide){
+      force = -0.02;
+    } else {
+      force = 0.02;  
+    }
+
+  } // if collide, x, y won't change
+  Serial.print(world_x,5);
+  Serial.print(',');
+  Serial.print(world_y,5);
+  Serial.print(',');
+  Serial.println(world_theta, 5);
   
   // Step B.6: 
     double ts = 0.01199 * updatedPos - 2.447 ; // Compute the angle of the sector pulley (ts) in degrees based on updatedPos
@@ -179,7 +196,7 @@ void loop()
   //  force = 0; // You can  generate a force by assigning this to a constant number (in Newtons) or use a haptic rendering / virtual environment
   // Step C.2: 
      double k = 300;
-     force = -k * xh;
+//     force = -k * xh;
      Tp = rh * rp * force / rs;    // Compute the require motor pulley torque (Tp) to generate that force using kinematics
  
   //*************************************************************
@@ -238,4 +255,30 @@ void setPwmFrequency(int pin, int divisor) {
     }
     TCCR2B = TCCR2B & 0b11111000 | mode;
   }
+}
+
+
+
+
+// --------------------------------------------------------------
+// 2D Maze Helper Functions
+// --------------------------------------------------------------
+void build_maze() {
+    int maze_height = resolution*world_height;
+    int maze_width = resolution*world_width;
+
+    for(int i = 0; i < 8; i++){
+      array2D[i][0] = 1;
+      array2D[i][11] = 1;
+    }
+    for(int j = 0; j < 12; j++){
+      array2D[0][j] = 1;
+      array2D[7][j] = 1;
+    }
+
+    for(int i = 3; i<=4; i++){
+      for(int j = 4; j<=7; j++){
+        array2D[i][j] = 1;
+      }
+    }
 }
