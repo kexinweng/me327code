@@ -12,7 +12,7 @@ float last_theta = 0;
 
 void setup () {
   // set the window size:
-  size(600, 400);        
+  size(600, 400);
 
   // List all the available serial ports
   println(Serial.list());
@@ -21,7 +21,7 @@ void setup () {
 
   //note you may need to change port number, it is 9 for me
   myPort = new Serial(this, Serial.list()[1], 115200);  // also make sure baud rate matches Arduino
-  
+
 
   // A serialEvent() is generated when a newline character is received :
   myPort.bufferUntil('\n');
@@ -32,20 +32,41 @@ void draw () {
   background(0); //uncomment if you want to control a ball
   stroke(255);     //stroke color
   strokeWeight(3);        //stroke wider
-  
+
   //float wallmap1 = map(?,-0.0689, 0.06119,0,600);
   //float wallmap2 = map(?,-0.0689, 0.06119,0,600);
   //float wallmap3 = map(?,-0.0689, 0.06119,0,600);
   //float wallmap4 = map(?,-0.0689, 0.06119,0,600);
   //float wallmap5 = map(?,-0.0689, 0.06119,0,600);
-  
+
   // outer boundary
   fill(255);
-  rect(50,50,500,300);
-  
+  rect(50, 50, 500, 300);
+
+
   //inner obstacle
-  fill(0);
+
+  fill(40, 110, 30);
+  rect(50, 100, 50, 200);
+  fill(180, 20, 50);
+  rect(450, 250, 50, 50);
+  fill(20, 60, 90);
+  rect(450, 50, 100, 100);
+  fill(200);
   rect(200, 150, 200, 100);
+  fill(230, 170, 50);
+  rect(200, 50, 100, 50);
+  fill(80, 140, 190);
+  rect(200, 300, 150, 50);
+  
+  fill(255, 220, 0);
+  circle(530, 330, 20);
+  if (in_x >= 520 && in_x <= 540 && in_y >= 320 && in_y <= 340) {
+    textSize(128);
+    fill(140, 21, 21);
+    text("Hooray!!!", 48, 180, -120);  // Specify a z-axis value
+    text("Go Trees!", 48, 240);  // Default depth, no z-value specified
+  }
 
   //// lower half circle, roundabout
   //fill(255);
@@ -53,13 +74,13 @@ void draw () {
   //noFill();
   //arc(300, 285, 200, 200, atan(0.15), PI - atan(0.15));
   //noFill();
-  
+
   //// two rectangle, left and right
   //fill(255);
   //rect(75, 75, 185, 160, 0 , 0, 40, 0);
   //fill(255);
   //rect(340, 75, 185, 160, 0, 0, 0, 40);
-  
+
   //// central lines
   //stroke(255);
   //strokeWeight(0.5);
@@ -69,17 +90,17 @@ void draw () {
   //line(380, 270, 560, 270);
   //line(560, 270, 560, 40);
   //line(300, 75, 300, 195);
-  
-  // location of the car 
+
+  // location of the car
   stroke(180, 110, 30);
   fill(180, 110, 30);
   ellipse(in_x, in_y, 10, 10);
   // representing direction
   strokeWeight(3);
   line(in_x, in_y, in_x + 15 * cos(in_theta), in_y + 15 * sin(in_theta));
-  
+
   //fill(180, 110, 30);
-  //rect(15, 200, 15, 25, 3, 3, 3, 3); 
+  //rect(15, 200, 15, 25, 3, 3, 3, 3);
 }
 
 void serialEvent (Serial myPort) {
@@ -90,7 +111,7 @@ void serialEvent (Serial myPort) {
   String read_x = myPort.readStringUntil(',');
   String read_y = myPort.readStringUntil(',');
   String read_theta = myPort.readStringUntil('\n'); // 32 is the ASCII of "\n"
-  if (read_x ==null || read_y == null || read_theta == null){
+  if (read_x ==null || read_y == null || read_theta == null) {
     return;
   }
   String text = trim(read_x);
@@ -102,21 +123,21 @@ void serialEvent (Serial myPort) {
   // if: the number is NaN, set current value to previous value
   // otherwise: map the new value to the screen width
   //           & update previous value variable
-    if (Float.isNaN(theta)){
+  if (Float.isNaN(theta)) {
     in_theta = last_theta;
   } else {
     in_theta = theta;
     last_theta = in_theta;
   }
-  
-    if (Float.isNaN(x)){
+
+  if (Float.isNaN(x)) {
     in_x = last_x;
   } else {
     in_x = x;
     last_x = in_x;
   }
-  
-    if (Float.isNaN(y)){
+
+  if (Float.isNaN(y)) {
     in_y = last_y;
   } else {
     in_y = y;
